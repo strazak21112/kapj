@@ -1,89 +1,145 @@
-import React, { useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import { TranslationContext } from "../App";
 import { useNavigate } from "react-router-dom";
+import Users from "./Users";
+import Buildings from "./Buildings";
+import Apartments from "./Apartments";
+import Readings from "./Readings";
 
 const Admin = () => {
+  const { translations } = useContext(TranslationContext);
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState("users"); // Domyślnie widok użytkowników
+  const [activeSection, setActiveSection] = useState(null);
+
+  const plLabels = {
+    admin_dashboard: "Panel administratora",
+    users: "Użytkownicy",
+    buildings: "Budynki",
+    apartments: "Apartamenty",
+    readings: "Odczyty",
+    logout: "Wyloguj się",
+  };
+
+  const labels = translations || plLabels;
 
   const handleLogout = () => {
     localStorage.clear();
     navigate("/", { replace: true });
   };
 
+  useEffect(() => {
+    if (!localStorage.getItem("token")) navigate("/", { replace: true });
+  }, [navigate]);
+
+  const renderSection = () => {
+    switch (activeSection) {
+      case "users":
+        return <Users />;
+      case "buildings":
+        // Wymuszamy ponowne pobranie budynków za pomocą klucza
+        return <Buildings key={Date.now()} />;
+      case "apartments":
+        return <Apartments />;
+      case "readings":
+        return <Readings />;
+      default:
+        return <h1>{labels.admin_dashboard}</h1>;
+    }
+  };
+
   return (
-    <div className="container mx-auto mt-10 p-6 bg-gray-100 rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-center mb-4">Panel Administratora</h1>
-      <p className="text-center text-gray-600 mb-4">Zarządzaj systemem spółdzielni mieszkaniowej</p>
+    <div style={styles.adminContainer}>
+      <div style={styles.leftMenu}>
+        {["users", "buildings", "apartments", "readings"].map((section) => (
+          <button
+            key={section}
+            style={styles.button}
+            onClick={() => setActiveSection(section)}
+          >
+            {labels[section]}
+          </button>
+        ))}
+      </div>
 
-      {/* Przycisk wylogowania */}
-      <div className="flex justify-center mb-6">
-        <button
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          onClick={handleLogout}
-        >
-          Wyloguj
+      <div style={styles.centerSection}>
+        {renderSection()}
+      </div>
+
+      <div style={styles.rightSection}>
+        <button style={styles.adminLogoutButton} onClick={handleLogout}>
+          {labels.logout}
         </button>
-      </div>
-
-      {/* Nawigacja wewnętrzna */}
-      <div className="flex justify-center space-x-4 mb-6">
-        <button className="tab-button" onClick={() => setCurrentView("users")}>Użytkownicy</button>
-        <button className="tab-button" onClick={() => setCurrentView("buildings")}>Budynki</button>
-        <button className="tab-button" onClick={() => setCurrentView("invoices")}>Rachunki</button>
-        <button className="tab-button" onClick={() => setCurrentView("meters")}>Liczniki</button>
-        <button className="tab-button" onClick={() => setCurrentView("finances")}>Finanse</button>
-      </div>
-
-      {/* Dynamiczna zawartość sekcji */}
-      <div className="bg-white p-6 rounded shadow">
-        {currentView === "users" && <UsersSection />}
-        {currentView === "buildings" && <BuildingsSection />}
-        {currentView === "invoices" && <InvoicesSection />}
-        {currentView === "meters" && <MetersSection />}
-        {currentView === "finances" && <FinancesSection />}
       </div>
     </div>
   );
 };
 
-// 🔹 Sekcja użytkowników
-const UsersSection = () => (
-  <div>
-    <h2 className="text-xl font-semibold mb-3">Zarządzanie Użytkownikami</h2>
-    <p>Lista użytkowników, edycja, usuwanie...</p>
-  </div>
-);
-
-// 🔹 Sekcja budynków
-const BuildingsSection = () => (
-  <div>
-    <h2 className="text-xl font-semibold mb-3">Zarządzanie Budynkami</h2>
-    <p>Dodawanie i edycja budynków...</p>
-  </div>
-);
-
-// 🔹 Sekcja rachunków
-const InvoicesSection = () => (
-  <div>
-    <h2 className="text-xl font-semibold mb-3">Wystawianie Rachunków</h2>
-    <p>Generowanie rachunków dla lokatorów...</p>
-  </div>
-);
-
-// 🔹 Sekcja liczników (odczyty prąd, gaz, woda itp.)
-const MetersSection = () => (
-  <div>
-    <h2 className="text-xl font-semibold mb-3">Odczyty Liczników</h2>
-    <p>Dodawanie i weryfikacja odczytów...</p>
-  </div>
-);
-
-// 🔹 Sekcja finansów (opłaty, fundusz remontowy)
-const FinancesSection = () => (
-  <div>
-    <h2 className="text-xl font-semibold mb-3">Finanse i Opłaty</h2>
-    <p>Przegląd wpłat, fundusz remontowy...</p>
-  </div>
-);
+const styles = {
+  adminContainer: {
+    display: "flex",
+    height: "100vh",
+    flexDirection: "row", // Sekcje ustawione w wierszu
+    width: "100%", // Ustalamy, żeby kontener miał pełną szerokość
+  },
+  leftMenu: {
+    width: "20%", // Lewa sekcja zajmuje 20% szerokości
+    height: "100vh", // Cała wysokość ekranu
+    padding: "10px",
+    backgroundColor: "#f0f0f0",
+    position: "fixed", // Ustalamy lewą sekcję jako fixed, aby pozostała na swoim miejscu
+    top: "60px", // Dopasowanie do górnej części ekranu poniżej navbaru
+    left: 0,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start", // Upewniamy się, że menu jest wyrównane do góry
+  },
+  centerSection: {
+    width: "70%", // Środkowa sekcja zajmuje 70% szerokości
+    marginLeft: "20%", // Zaczyna się po lewej sekcji
+    height: "calc(100vh - 60px)", // Cała wysokość z uwzględnieniem navbaru
+    padding: "20px",
+    overflowY: "auto", // Włącz scroll w pionie, gdy zawartość będzie większa niż dostępna wysokość
+    display: "flex",
+    flexDirection: "column", // Pozwala na rozciąganie zawartości na całą szerokość
+    flexGrow: 1, // Pozwól tej sekcji rosnąć, by wypełnić dostępną przestrzeń
+    justifyContent: "center", // Wyśrodkowanie w pionie
+    alignItems: "center", // Wyśrodkowanie w poziomie
+  },
+  rightSection: {
+    width: "10%", // Prawa sekcja zajmuje 10% szerokości
+    height: "100vh", // Cała wysokość ekranu
+    padding: "10px",
+    backgroundColor: "#f0f0f0",
+    position: "fixed", // Prawa sekcja jest "przyklejona" do prawej krawędzi
+    top: "60px", // Dopasowanie do górnej części ekranu
+    right: 0,
+    display: "flex",
+    justifyContent: "flex-end", // Wyrównanie przycisku do prawej strony
+    alignItems: "flex-start", // Ustalamy górną część
+    paddingTop: "20px", // Możemy dostosować odległość od góry
+  },
+  adminLogoutButton: {
+    padding: "10px 15px",
+    backgroundColor: "#ff4757",
+    color: "#fff",
+    border: "none",
+    cursor: "pointer",
+    borderRadius: "5px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    transition: "background-color 0.3s",
+  },
+  button: {
+    padding: "15px",
+    fontSize: "16px",
+    backgroundColor: "#ddd",
+    border: "none",
+    cursor: "pointer",
+    borderRadius: "5px",
+    marginBottom: "10px",
+    textAlign: "left",
+    width: "100%",
+  },
+};
 
 export default Admin;

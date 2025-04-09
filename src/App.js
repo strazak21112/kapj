@@ -60,7 +60,7 @@ const LanguageProvider = ({ children }) => {
 
   useEffect(() => {
     if (language !== 'pl') fetchTranslations(language);
-  }, []);
+  }, [language]);  
 
   const handleLanguageChange = (lang) => {
     if (lang !== language && !isLoading) fetchTranslations(lang);
@@ -75,8 +75,7 @@ const LanguageProvider = ({ children }) => {
   );
 };
 
-// Obsługa przekierowań po zalogowaniu
-const AuthRedirect = () => {
+ const AuthRedirect = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,22 +84,22 @@ const AuthRedirect = () => {
 
     if (token) {
       switch (role) {
-        case 'admin':
+        case 'ADMIN':
           navigate('/admin', { replace: true });
           break;
-        case 'manager':
+        case 'MANAGER':
           navigate('/manager', { replace: true });
           break;
-        case 'tenant':
+        case 'USER':
           navigate('/tenant', { replace: true });
           break;
         default:
           navigate('/', { replace: true });
       }
     }
-  }, []);
+  }, [navigate]);  
 
-  return null; // Nie renderuje nic, tylko przekierowuje
+  return null;  
 };
 
 const App = () => {
@@ -152,7 +151,7 @@ const LanguageSelector = () => {
 const styles = {
   container: {
     fontFamily: 'Arial, sans-serif',
-    height: '100vh',
+    height: '100vh',  
     display: 'flex',
     flexDirection: 'column',
     backgroundColor: '#f5f5f5',
@@ -165,11 +164,12 @@ const styles = {
     justifyContent: 'flex-end',
   },
   content: {
-    flex: 1,
+    flex: 1,  
     padding: '20px',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',  
+    overflowY: 'auto', 
   },
   languageSelector: {
     display: 'flex',
@@ -197,5 +197,6 @@ const styles = {
     transition: 'background-color 0.3s',
   },
 };
+
 
 export default App;
