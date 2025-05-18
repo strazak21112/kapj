@@ -1,8 +1,8 @@
 import React, { useContext, useState, useEffect } from "react";
 import { TranslationContext } from "../App";
 import { useNavigate } from "react-router-dom";
-import Users from "./Users";
-import Buildings from "./Buildings";
+import Users from "./users/Users";
+import Buildings from "./buildings/Buildings";
 import Apartments from "./Apartments";
 import Readings from "./Readings";
 
@@ -32,21 +32,22 @@ const Admin = () => {
   }, [navigate]);
 
   const renderSection = () => {
+    const uniqueKey = Date.now();  
+  
     switch (activeSection) {
       case "users":
-        return <Users />;
+        return <Users key={uniqueKey} />;
       case "buildings":
-        // Wymuszamy ponowne pobranie budynków za pomocą klucza
-        return <Buildings key={Date.now()} />;
+        return <Buildings key={uniqueKey} />;
       case "apartments":
-        return <Apartments />;
+        return <Apartments key={uniqueKey} />;
       case "readings":
-        return <Readings />;
+        return <Readings key={uniqueKey} />;
       default:
-        return <h1>{labels.admin_dashboard}</h1>;
+        return <h1 key={uniqueKey}>{labels.admin_dashboard}</h1>;
     }
   };
-
+  
   return (
     <div style={styles.adminContainer}>
       <div style={styles.leftMenu}>
