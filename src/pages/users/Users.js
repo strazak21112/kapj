@@ -3,7 +3,7 @@ import AddUserForm from "./AddUserForm";
 import { LanguageContext, TranslationContext } from "../../App";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = "http://localhost:8080/untitled_war_exploded/api/users";
+const API_URL = "http://localhost:8080/Spring6_war_exploded/api/users";
 
 const Users = () => {
   const [view, setView] = useState("add");

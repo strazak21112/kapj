@@ -6,6 +6,31 @@ const BuildingEditForm = ({ building, onSave, onCancel, translations }) => {
     address: { ...building.address },
   });
 
+  const labels = {
+    editBuilding: translations?.editBuilding || "Edytuj budynek",
+    cancel: translations?.cancel || "Anuluj",
+    save: translations?.save || "Zapisz",
+    formError:
+      translations?.buildingformError ||
+      "Uzupełnij wszystkie pola i upewnij się, że stawki są większe od zera.",
+    address: translations?.address || "Adres",
+    street: translations?.street || "Ulica",
+    number: translations?.buildingnumber || "Numer",
+    postalCode: translations?.postalCode || "Kod pocztowy",
+    city: translations?.city || "Miasto",
+    rates: translations?.rates || "Stawki",
+    electricityRate: translations?.electricityRate || "Stawka za prąd (PLN/kWh)",
+    coldWaterRate: translations?.coldWaterRate || "Stawka za zimną wodę (PLN/m³)",
+    hotWaterRate: translations?.hotWaterRate || "Stawka za ciepłą wodę (PLN/m³)",
+    heatingRate: translations?.heatingRate || "Stawka za ogrzewanie (PLN/m²)",
+    rentRatePerM2: translations?.rentRatePerM2 || "Czynsz za m² (PLN)",
+    otherChargesPerM2: translations?.otherChargesPerM2 || "Inne opłaty za m² (PLN)",
+    flatElectricityRate: translations?.flatElectricityRate || "Ryczałt za prąd (PLN)",
+    flatColdWaterRate: translations?.flatColdWaterRate || "Ryczałt za zimną wodę (PLN)",
+    flatHotWaterRate: translations?.flatHotWaterRate || "Ryczałt za ciepłą wodę (PLN)",
+    flatHeatingRate: translations?.flatHeatingRate || "Ryczałt za ogrzewanie (PLN)",
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name.startsWith("address")) {
@@ -34,21 +59,28 @@ const BuildingEditForm = ({ building, onSave, onCancel, translations }) => {
       "flatHotWaterRate",
       "flatHeatingRate",
     ];
+
     const anyInvalid = numericFields.some(
       (key) => parseFloat(formData[key]) <= 0 || isNaN(formData[key])
     );
+
     const addressEmpty = Object.values(formData.address).some(
       (val) => !val || val.trim() === ""
     );
+
     if (anyInvalid || addressEmpty) {
-      alert(translations?.formError || "Uzupełnij wszystkie pola i upewnij się, że stawki są większe od zera.");
+      alert(labels.formError);
       return;
     }
 
     const payload = {
       ...formData,
-      apartments: (formData.apartments || []).map(a => typeof a === "object" ? a.id : a),
-      managers: (formData.managers || []).map(m => typeof m === "object" ? m.id : m),
+      apartments: (formData.apartments || []).map((a) =>
+        typeof a === "object" ? a.id : a
+      ),
+      managers: (formData.managers || []).map((m) =>
+        typeof m === "object" ? m.id : m
+      ),
     };
 
     onSave(payload);
@@ -56,25 +88,23 @@ const BuildingEditForm = ({ building, onSave, onCancel, translations }) => {
 
   return (
     <div className="max-w-4xl mx-auto mt-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
-        {translations?.editBuilding || "Edytuj budynek"}
-      </h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">{labels.editBuilding}</h2>
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-700">{translations?.address || "Adres"}</h3>
+          <h3 className="text-lg font-semibold text-gray-700">{labels.address}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[ 
-              ["address.street", translations?.street || "Ulica"],
-              ["address.number", translations?.number || "Numer"],
-              ["address.postalCode", translations?.postalCode || "Kod pocztowy"],
-              ["address.city", translations?.city || "Miasto"]
-            ].map(([name, label]) => (
+            {[
+              { label: labels.street, name: "address.street" },
+              { label: labels.number, name: "address.number" },
+              { label: labels.postalCode, name: "address.postalCode" },
+              { label: labels.city, name: "address.city" },
+            ].map(({ label, name }) => (
               <div key={name}>
                 <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
                 <input
                   type="text"
                   name={name}
-                  value={name.startsWith("address") ? formData.address[name.split(".")[1]] : formData[name]}
+                  value={formData.address[name.split(".")[1]]}
                   onChange={handleChange}
                   required
                   className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
@@ -85,20 +115,20 @@ const BuildingEditForm = ({ building, onSave, onCancel, translations }) => {
         </div>
 
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-700">{translations?.rates || "Stawki"}</h3>
+          <h3 className="text-lg font-semibold text-gray-700">{labels.rates}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[ 
-              ["electricityRate", translations?.electricityRate || "Stawka za prąd (PLN/kWh)"],
-              ["coldWaterRate", translations?.coldWaterRate || "Stawka za zimną wodę (PLN/m³)"],
-              ["hotWaterRate", translations?.hotWaterRate || "Stawka za ciepłą wodę (PLN/m³)"],
-              ["heatingRate", translations?.heatingRate || "Stawka za ogrzewanie (PLN/m²)"],
-              ["rentRatePerM2", translations?.rentRatePerM2 || "Czynsz za m² (PLN)"],
-              ["otherChargesPerM2", translations?.otherChargesPerM2 || "Inne opłaty za m² (PLN)"],
-              ["flatElectricityRate", translations?.flatElectricityRate || "Ryczałt za prąd (PLN)"],
-              ["flatColdWaterRate", translations?.flatColdWaterRate || "Ryczałt za zimną wodę (PLN)"],
-              ["flatHotWaterRate", translations?.flatHotWaterRate || "Ryczałt za ciepłą wodę (PLN)"],
-              ["flatHeatingRate", translations?.flatHeatingRate || "Ryczałt za ogrzewanie (PLN)"]
-            ].map(([name, label]) => (
+            {[
+              { label: labels.electricityRate, name: "electricityRate" },
+              { label: labels.coldWaterRate, name: "coldWaterRate" },
+              { label: labels.hotWaterRate, name: "hotWaterRate" },
+              { label: labels.heatingRate, name: "heatingRate" },
+              { label: labels.rentRatePerM2, name: "rentRatePerM2" },
+              { label: labels.otherChargesPerM2, name: "otherChargesPerM2" },
+              { label: labels.flatElectricityRate, name: "flatElectricityRate" },
+              { label: labels.flatColdWaterRate, name: "flatColdWaterRate" },
+              { label: labels.flatHotWaterRate, name: "flatHotWaterRate" },
+              { label: labels.flatHeatingRate, name: "flatHeatingRate" },
+            ].map(({ label, name }) => (
               <div key={name}>
                 <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
                 <input
@@ -121,14 +151,14 @@ const BuildingEditForm = ({ building, onSave, onCancel, translations }) => {
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
           >
-            {translations?.save || "Zapisz"}
+            {labels.save}
           </button>
           <button
             type="button"
             onClick={onCancel}
             className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg"
           >
-            {translations?.cancel || "Anuluj"}
+            {labels.cancel}
           </button>
         </div>
       </form>

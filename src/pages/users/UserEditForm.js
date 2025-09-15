@@ -1,139 +1,156 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const BuildingEditForm = ({ building, onSave, onCancel, translations }) => {
-  const [formData, setFormData] = useState({
-    ...building,
-    address: { ...building.address },
-  });
+const UserEditForm = ({ user, apartments, buildings, translations, onSave, onCancel }) => {
+  const [formData, setFormData] = useState({ ...user });
+  const [addingApartment, setAddingApartment] = useState(false);
+  const [apartmentChanged, setApartmentChanged] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name.startsWith("address")) {
-      const addressField = name.split(".")[1];
-      setFormData((prev) => ({
-        ...prev,
-        address: { ...prev.address, [addressField]: value },
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+  const labels = {
+    username: translations?.username || "Nazwa użytkownika",
+    email: translations?.email || "E-mail",
+    apartment: translations?.apartment || "Mieszkanie",
+    remove: translations?.remove || "Usuń",
+    addApartment: translations?.addApartment || "Dodaj mieszkanie",
+    noApartments: translations?.noApartments || "Brak dostępnych mieszkań",
+    buildings: translations?.buildings || "Budynki",
+    cancel: translations?.cancel || "Anuluj",
+    save: translations?.save || "Zapisz",
   };
+
+  useEffect(() => {
+    setFormData({ ...user });
+    setAddingApartment(false);
+    setApartmentChanged(false);
+  }, [user]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const numericFields = [
-      "electricityRate",
-      "coldWaterRate",
-      "hotWaterRate",
-      "heatingRate",
-      "rentRatePerM2",
-      "otherChargesPerM2",
-      "flatElectricityRate",
-      "flatColdWaterRate",
-      "flatHotWaterRate",
-      "flatHeatingRate",
-    ];
-    const anyInvalid = numericFields.some(
-      (key) => parseFloat(formData[key]) <= 0 || isNaN(formData[key])
-    );
-    const addressEmpty = Object.values(formData.address).some(
-      (val) => !val || val.trim() === ""
-    );
-    if (anyInvalid || addressEmpty) {
-      alert(translations?.formError || "Uzupełnij wszystkie pola i upewnij się, że stawki są większe od zera.");
-      return;
-    }
-
-    const payload = {
-      ...formData,
-      apartments: (formData.apartments || []).map(a => typeof a === "object" ? a.id : a),
-      managers: (formData.managers || []).map(m => typeof m === "object" ? m.id : m),
-    };
-
-    onSave(payload);
+    onSave(formData);
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
-        {translations?.editBuilding || "Edytuj budynek"}
-      </h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-700">{translations?.address || "Adres"}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[ 
-              ["address.street", translations?.street || "Ulica"],
-              ["address.number", translations?.number || "Numer"],
-              ["address.postalCode", translations?.postalCode || "Kod pocztowy"],
-              ["address.city", translations?.city || "Miasto"]
-            ].map(([name, label]) => (
-              <div key={name}>
-                <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
-                <input
-                  type="text"
-                  name={name}
-                  value={name.startsWith("address") ? formData.address[name.split(".")[1]] : formData[name]}
-                  onChange={handleChange}
-                  required
-                  className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+    <form onSubmit={handleSubmit} className="p-4 bg-white rounded-lg shadow-md">
+      {/* Username */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-600">{labels.username}</label>
+        <input
+          type="text"
+          value={formData.username || ""}
+          onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+          className="border border-gray-300 p-2 rounded-lg w-full"
+        />
+      </div>
 
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-700">{translations?.rates || "Stawki"}</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[ 
-              ["electricityRate", translations?.electricityRate || "Stawka za prąd (PLN/kWh)"],
-              ["coldWaterRate", translations?.coldWaterRate || "Stawka za zimną wodę (PLN/m³)"],
-              ["hotWaterRate", translations?.hotWaterRate || "Stawka za ciepłą wodę (PLN/m³)"],
-              ["heatingRate", translations?.heatingRate || "Stawka za ogrzewanie (PLN/m²)"],
-              ["rentRatePerM2", translations?.rentRatePerM2 || "Czynsz za m² (PLN)"],
-              ["otherChargesPerM2", translations?.otherChargesPerM2 || "Inne opłaty za m² (PLN)"],
-              ["flatElectricityRate", translations?.flatElectricityRate || "Ryczałt za prąd (PLN)"],
-              ["flatColdWaterRate", translations?.flatColdWaterRate || "Ryczałt za zimną wodę (PLN)"],
-              ["flatHotWaterRate", translations?.flatHotWaterRate || "Ryczałt za ciepłą wodę (PLN)"],
-              ["flatHeatingRate", translations?.flatHeatingRate || "Ryczałt za ogrzewanie (PLN)"]
-            ].map(([name, label]) => (
-              <div key={name}>
-                <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
-                <input
-                  type="number"
-                  name={name}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  step="0.01"
-                  min="0.01"
-                  required
-                  className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Email */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-600">{labels.email}</label>
+        <input
+          type="email"
+          value={formData.email || ""}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          className="border border-gray-300 p-2 rounded-lg w-full"
+        />
+      </div>
 
-        <div className="mt-6 flex space-x-4">
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
-          >
-            {translations?.save || "Zapisz"}
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg"
-          >
-            {translations?.cancel || "Anuluj"}
-          </button>
+      {/* Apartment section only for USER */}
+      {formData.role === "USER" && (
+        <div className="mt-6">
+          <label className="block text-sm font-medium text-gray-600 mb-1">{labels.apartment}</label>
+
+          {formData.apartment ? (
+            <div className="flex items-center justify-between border border-gray-300 p-2 rounded-lg">
+              <span>{formData.apartment.identifier || `ID ${formData.apartment.id}`}</span>
+              <button
+                type="button"
+                disabled={apartmentChanged}
+                onClick={() => {
+                  setFormData((prev) => ({ ...prev, apartment: null }));
+                  setAddingApartment(false);
+                  setApartmentChanged(true);
+                }}
+                className={`${
+                  apartmentChanged ? "text-gray-400 cursor-not-allowed" : "text-red-600 hover:text-red-800"
+                }`}
+              >
+                {labels.remove}
+              </button>
+            </div>
+          ) : !addingApartment && apartments.length > 0 && !apartmentChanged ? (
+            <button
+              type="button"
+              onClick={() => setAddingApartment(true)}
+              className="mt-2 text-blue-600 hover:text-blue-800"
+            >
+              {labels.addApartment}
+            </button>
+          ) : !formData.apartment && apartments.length === 0 ? (
+            <p className="text-gray-500 text-sm mt-2">{labels.noApartments}</p>
+          ) : null}
+
+          {addingApartment && !formData.apartment && (
+            <select
+              className="border border-gray-300 p-2 rounded-lg w-full mt-2"
+              value=""
+              onChange={(e) => {
+                const apartmentId = parseInt(e.target.value);
+                const selected = apartments.find((a) => a.id === apartmentId);
+                setFormData((prev) => ({ ...prev, apartment: selected || null }));
+                setAddingApartment(false);
+                setApartmentChanged(true);
+              }}
+            >
+              <option value="">--</option>
+              {apartments.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.identifier || `ID ${a.id}`}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
-      </form>
-    </div>
+      )}
+
+      {/* Buildings section only for MANAGER */}
+      {formData.role === "MANAGER" && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-600">{labels.buildings}</label>
+          <select
+            multiple
+            className="border border-gray-300 p-2 rounded-lg w-full"
+            value={formData.buildings?.map((b) => b.id) || []}
+            onChange={(e) => {
+              const selectedIds = Array.from(e.target.selectedOptions, (opt) => parseInt(opt.value));
+              const selectedBuildings = buildings.filter((b) => selectedIds.includes(b.id));
+              setFormData((prev) => ({ ...prev, buildings: selectedBuildings }));
+            }}
+          >
+            {buildings.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name || `ID ${b.id}`}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="mt-6 flex justify-end gap-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg"
+        >
+          {labels.cancel}
+        </button>
+        <button
+          type="submit"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+        >
+          {labels.save}
+        </button>
+      </div>
+    </form>
   );
 };
 
-export default BuildingEditForm;
+export default UserEditForm;

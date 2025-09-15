@@ -3,7 +3,7 @@ import { TranslationContext } from "../App";
 import { useNavigate } from "react-router-dom";
 import Users from "./users/Users";
 import Buildings from "./buildings/Buildings";
-import Apartments from "./Apartments";
+import Apartments from "./apartments/Apartments";
 import Readings from "./Readings";
 
 const Admin = () => {
@@ -13,11 +13,11 @@ const Admin = () => {
 
   const plLabels = {
     admin_dashboard: "Panel administratora",
-    users: "Użytkownicy",
-    buildings: "Budynki",
-    apartments: "Apartamenty",
-    readings: "Odczyty",
-    logout: "Wyloguj się",
+    admin_users: "Użytkownicy",
+    admin_buildings: "Budynki",
+    admin_apartments: "Apartamenty",
+    admin_readings: "Odczyty",
+    admin_logout: "Wyloguj się",
   };
 
   const labels = translations || plLabels;
@@ -32,8 +32,8 @@ const Admin = () => {
   }, [navigate]);
 
   const renderSection = () => {
-    const uniqueKey = Date.now();  
-  
+    const uniqueKey = Date.now();
+
     switch (activeSection) {
       case "users":
         return <Users key={uniqueKey} />;
@@ -47,7 +47,7 @@ const Admin = () => {
         return <h1 key={uniqueKey}>{labels.admin_dashboard}</h1>;
     }
   };
-  
+
   return (
     <div style={styles.adminContainer}>
       <div style={styles.leftMenu}>
@@ -57,7 +57,7 @@ const Admin = () => {
             style={styles.button}
             onClick={() => setActiveSection(section)}
           >
-            {labels[section]}
+            {labels[`admin_${section}`]}
           </button>
         ))}
       </div>
@@ -68,7 +68,7 @@ const Admin = () => {
 
       <div style={styles.rightSection}>
         <button style={styles.adminLogoutButton} onClick={handleLogout}>
-          {labels.logout}
+          {labels.admin_logout}
         </button>
       </div>
     </div>
@@ -79,45 +79,45 @@ const styles = {
   adminContainer: {
     display: "flex",
     height: "100vh",
-    flexDirection: "row", // Sekcje ustawione w wierszu
-    width: "100%", // Ustalamy, żeby kontener miał pełną szerokość
+    flexDirection: "row",
+    width: "100%",
   },
   leftMenu: {
-    width: "20%", // Lewa sekcja zajmuje 20% szerokości
-    height: "100vh", // Cała wysokość ekranu
+    width: "20%",
+    height: "100vh",
     padding: "10px",
     backgroundColor: "#f0f0f0",
-    position: "fixed", // Ustalamy lewą sekcję jako fixed, aby pozostała na swoim miejscu
-    top: "60px", // Dopasowanie do górnej części ekranu poniżej navbaru
+    position: "fixed",
+    top: "60px",
     left: 0,
     display: "flex",
     flexDirection: "column",
-    justifyContent: "flex-start", // Upewniamy się, że menu jest wyrównane do góry
+    justifyContent: "flex-start",
   },
   centerSection: {
-    width: "70%", // Środkowa sekcja zajmuje 70% szerokości
-    marginLeft: "20%", // Zaczyna się po lewej sekcji
-    height: "calc(100vh - 60px)", // Cała wysokość z uwzględnieniem navbaru
+    width: "70%",
+    marginLeft: "20%",
+    height: "calc(100vh - 60px)",
     padding: "20px",
-    overflowY: "auto", // Włącz scroll w pionie, gdy zawartość będzie większa niż dostępna wysokość
+    overflowY: "auto",
     display: "flex",
-    flexDirection: "column", // Pozwala na rozciąganie zawartości na całą szerokość
-    flexGrow: 1, // Pozwól tej sekcji rosnąć, by wypełnić dostępną przestrzeń
-    justifyContent: "center", // Wyśrodkowanie w pionie
-    alignItems: "center", // Wyśrodkowanie w poziomie
+    flexDirection: "column",
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   rightSection: {
-    width: "10%", // Prawa sekcja zajmuje 10% szerokości
-    height: "100vh", // Cała wysokość ekranu
+    width: "10%",
+    height: "100vh",
     padding: "10px",
     backgroundColor: "#f0f0f0",
-    position: "fixed", // Prawa sekcja jest "przyklejona" do prawej krawędzi
-    top: "60px", // Dopasowanie do górnej części ekranu
+    position: "fixed",
+    top: "60px",
     right: 0,
     display: "flex",
-    justifyContent: "flex-end", // Wyrównanie przycisku do prawej strony
-    alignItems: "flex-start", // Ustalamy górną część
-    paddingTop: "20px", // Możemy dostosować odległość od góry
+    justifyContent: "flex-end",
+    alignItems: "flex-start",
+    paddingTop: "20px",
   },
   adminLogoutButton: {
     padding: "10px 15px",

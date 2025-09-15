@@ -1,33 +1,31 @@
 import React, { useState } from "react";
 
-const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
+const AddApartmentForm = ({ onSubmit, onCancel, translations, buildings }) => {
   const [form, setForm] = useState({
-    address: {
-      city: "",
-      street: "",
-      number: "",
-      postalCode: "",
-    },
-    numberOfFloors: 1,
-    electricityRate: 0.01,
-    coldWaterRate: 0.01,
-    hotWaterRate: 0.01,
-    heatingRate: 0.01,
-    rentRatePerM2: 0.01,
-    otherChargesPerM2: 0.01,
-    flatElectricityRate: 0.01,
-    flatColdWaterRate: 0.01,
-    flatHotWaterRate: 0.01,
-    flatHeatingRate: 0.01,
+    apartmentNumber: "",
+    floor: 0,
+    area: 1,
+    buildingInfo: null,
   });
 
-  const handleAddressChange = (field, value) => {
+  const labels = {
+    addApartment: translations?.addApartment || "Dodaj mieszkanie",
+    cancel: translations?.cancel || "Anuluj",
+    formError:
+      translations?.formError ||
+      "Uzupełnij wszystkie pola poprawnie. Powierzchnia musi być większa od 0, numer mieszkania nie może być pusty, wybierz budynek.",
+    apartmentNumber: translations?.apartmentNumber || "Numer mieszkania",
+    floor: translations?.floor || "Piętro",
+    area: translations?.area || "Powierzchnia (m²)",
+    buildingId: translations?.buildingId || "Budynek",
+    selectBuilding: translations?.selectBuilding || "-- wybierz budynek --",
+  };
+
+  const handleBuildingChange = (buildingId) => {
+    const b = buildings.find((b) => b.id === parseInt(buildingId));
     setForm((prev) => ({
       ...prev,
-      address: {
-        ...prev.address,
-        [field]: value,
-      },
+      buildingInfo: b || null,
     }));
   };
 
@@ -41,129 +39,115 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const isAddressInvalid = Object.values(form.address).some(
-      (val) => !val || val.trim() === ""
-    );
+    const { apartmentNumber, floor, area, buildingInfo } = form;
 
-    const isFloorInvalid = isNaN(form.numberOfFloors) || form.numberOfFloors < 1;
+    const isInvalid =
+      !apartmentNumber.trim() ||
+      isNaN(floor) ||
+      isNaN(area) ||
+      parseFloat(area) <= 0 ||
+      !buildingInfo;
 
-    const numericFields = [
-      "electricityRate",
-      "coldWaterRate",
-      "hotWaterRate",
-      "heatingRate",
-      "rentRatePerM2",
-      "otherChargesPerM2",
-      "flatElectricityRate",
-      "flatColdWaterRate",
-      "flatHotWaterRate",
-      "flatHeatingRate",
-    ];
-
-    const hasInvalidRates = numericFields.some(
-      (key) => isNaN(form[key]) || parseFloat(form[key]) <= 0
-    );
-
-    if (isAddressInvalid || isFloorInvalid || hasInvalidRates) {
-      alert(translations?.formError || "Uzupełnij wszystkie pola poprawnie. Wszystkie stawki muszą być większe od 0, a adres nie może być pusty.");
+    if (isInvalid) {
+      alert(labels.formError);
       return;
     }
 
-    onSubmit(form);
+    const payload = {
+      number: apartmentNumber,
+      floor,
+      area,
+      buildingInfo,
+    };
+
+    onSubmit(payload);
+    resetForm();
   };
 
   const resetForm = () => {
     setForm({
-      address: {
-        city: "",
-        street: "",
-        number: "",
-        postalCode: "",
-      },
-      numberOfFloors: 1,
-      electricityRate: 0.01,
-      coldWaterRate: 0.01,
-      hotWaterRate: 0.01,
-      heatingRate: 0.01,
-      rentRatePerM2: 0.01,
-      otherChargesPerM2: 0.01,
-      flatElectricityRate: 0.01,
-      flatColdWaterRate: 0.01,
-      flatHotWaterRate: 0.01,
-      flatHeatingRate: 0.01,
+      apartmentNumber: "",
+      floor: 0,
+      area: 1,
+      buildingInfo: null,
     });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl mx-auto mt-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">{translations?.addBuilding || "Dodaj budynek"}</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-6 max-w-2xl mx-auto mt-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200"
+    >
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        {labels.addApartment}
+      </h2>
 
-      <div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">{translations?.address || "Adres"}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[ 
-            { label: translations?.street || "Ulica", field: "street" },
-            { label: translations?.number || "Numer", field: "number" },
-            { label: translations?.postalCode || "Kod pocztowy", field: "postalCode" },
-            { label: translations?.city || "Miasto", field: "city" },
-          ].map(({ label, field }) => (
-            <div key={field}>
-              <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
-              <input
-                type="text"
-                value={form.address[field]}
-                onChange={(e) => handleAddressChange(field, e.target.value)}
-                required
-                className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">{translations?.buildingInfo || "Informacje o budynku"}</h3>
-        <div className="w-1/2">
-          <label className="block text-sm font-medium text-gray-600 mb-1">{translations?.numberOfFloors || "Liczba pięter"}</label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-600 mb-1">
+            {labels.apartmentNumber}
+          </label>
           <input
-            type="number"
-            min="1"
-            required
-            value={form.numberOfFloors}
-            onChange={(e) => handleChange("numberOfFloors", parseInt(e.target.value))}
+            type="text"
+            value={form.apartmentNumber}
+            onChange={(e) => handleChange("apartmentNumber", e.target.value)}
             className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
           />
         </div>
-      </div>
 
-      <div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">{translations?.rates || "Stawki i opłaty"}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[ 
-            { label: translations?.electricityRate || "Stawka za prąd (zł/kWh)", field: "electricityRate" },
-            { label: translations?.coldWaterRate || "Stawka za zimną wodę (zł/m³)", field: "coldWaterRate" },
-            { label: translations?.hotWaterRate || "Stawka za ciepłą wodę (zł/m³)", field: "hotWaterRate" },
-            { label: translations?.heatingRate || "Stawka za ogrzewanie (zł/GJ)", field: "heatingRate" },
-            { label: translations?.rentRatePerM2 || "Czynsz (zł/m²)", field: "rentRatePerM2" },
-            { label: translations?.otherChargesPerM2 || "Inne opłaty (zł/m²)", field: "otherChargesPerM2" },
-            { label: translations?.flatElectricityRate || "Ryczałt za prąd (zł)", field: "flatElectricityRate" },
-            { label: translations?.flatColdWaterRate || "Ryczałt za zimną wodę (zł)", field: "flatColdWaterRate" },
-            { label: translations?.flatHotWaterRate || "Ryczałt za ciepłą wodę (zł)", field: "flatHotWaterRate" },
-            { label: translations?.flatHeatingRate || "Ryczałt za ogrzewanie (zł)", field: "flatHeatingRate" },
-          ].map(({ label, field }) => (
-            <div key={field}>
-              <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                required
-                value={form[field]}
-                onChange={(e) => handleChange(field, parseFloat(e.target.value))}
-                className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
-              />
-            </div>
-          ))}
+        <div>
+          <label className="block text-sm font-medium text-gray-600 mb-1">
+            {labels.floor}
+          </label>
+          <input
+            type="number"
+            min={0}
+            value={form.floor}
+            onChange={(e) =>
+              handleChange("floor", parseInt(e.target.value) || 0)
+            }
+            className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-600 mb-1">
+            {labels.area}
+          </label>
+          <input
+            type="number"
+            min={0.01}
+            step="0.01"
+            value={form.area}
+            onChange={(e) =>
+              handleChange("area", parseFloat(e.target.value) || 1)
+            }
+            className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-600 mb-1">
+            {labels.buildingId}
+          </label>
+          <select
+            value={form.buildingInfo ? form.buildingInfo.id : ""}
+            onChange={(e) => handleBuildingChange(e.target.value)}
+            className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
+          >
+            <option value="">{labels.selectBuilding}</option>
+            {buildings.map((building) => (
+              <option key={building.id} value={building.id}>
+                {`${building.address.street} ${building.address.number}, ${building.address.postalCode} ${building.address.city}`}
+              </option>
+            ))}
+          </select>
+
+          {form.buildingInfo && (
+            <p className="mt-2 text-gray-700 text-sm">
+              {`${form.buildingInfo.address.street} ${form.buildingInfo.address.number}, ${form.buildingInfo.address.postalCode} ${form.buildingInfo.address.city}`}
+            </p>
+          )}
         </div>
       </div>
 
@@ -172,18 +156,18 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
         >
-          {translations?.addBuilding || "Dodaj budynek"}
+          {labels.addApartment}
         </button>
         <button
           type="button"
           onClick={onCancel}
           className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg"
         >
-          {translations?.cancel || "Anuluj"}
+          {labels.cancel}
         </button>
       </div>
     </form>
   );
 };
 
-export default AddBuildingForm;
+export default AddApartmentForm;

@@ -1,81 +1,76 @@
-import React, { useState, createContext, useEffect, useRef, useContext } from 'react';
+import React, { useState, createContext, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Tenant from './pages/Tenant';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+import User from './pages/User';
 import Manager from './pages/Manager';
 import Admin from './pages/Admin';
-import Activate from './pages/Activate';
+import Activate from './pages/auth/Activate';
 
 export const LanguageContext = createContext();
 export const TranslationContext = createContext();
+
+const getDefaultLanguage = () => {
+  const savedLang = localStorage.getItem('lang');
+  if (savedLang && ['pl', 'en', 'de'].includes(savedLang)) {
+    return savedLang;
+  }
+  const userLang = navigator.language || navigator.userLanguage;
+  const lang = userLang.split('-')[0];
+  return ['pl', 'en', 'de'].includes(lang) ? lang : 'pl';
+};
 
 const LanguageProvider = ({ children }) => {
   const [language, setLanguage] = useState(getDefaultLanguage());
   const [translations, setTranslations] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const isFetchingRef = useRef(false);
-  const pendingLanguageRef = useRef(null);
+  const [error, setError] = useState(null);
 
-  function getDefaultLanguage() {
-    const userLang = navigator.language || navigator.userLanguage;
-    const lang = userLang.split('-')[0];
-    return ['pl', 'en', 'de'].includes(lang) ? lang : 'pl';
-  }
-
-  async function fetchTranslations(lang) {
-    if (lang === 'pl') {
+  useEffect(() => {
+    if (language === 'pl') {
       setTranslations(null);
-      setLanguage('pl');
-      pendingLanguageRef.current = null;
+      setError(null);
+      setIsLoading(false);
       return;
     }
 
-    if (isFetchingRef.current) return;
-
-    isFetchingRef.current = true;
     setIsLoading(true);
-    pendingLanguageRef.current = lang;
+    setError(null);
 
-    try {
-      const response = await fetch(`http://localhost:8080/untitled_war_exploded/translations`, {
-        method: 'GET',
-        headers: { 'Accept-Language': lang },
-      });
-
-      if (!response.ok) throw new Error(`Błąd pobierania tłumaczeń dla ${lang}`);
-
-      const data = await response.json();
-      setTranslations(data);
-      setLanguage(lang);
-    } catch (err) {
-      console.error('Błąd pobierania tłumaczeń:', err);
-    } finally {
-      setIsLoading(false);
-      isFetchingRef.current = false;
-      pendingLanguageRef.current = null;
-    }
-  }
-
-  useEffect(() => {
-    if (language !== 'pl') fetchTranslations(language);
-  }, [language]);  
+    fetch('http://localhost:8080/Spring6_war_exploded/translations', {
+      headers: { 'Accept-Language': language },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Błąd pobierania tłumaczeń dla ${language}`);
+        return res.json();
+      })
+      .then((data) => setTranslations(data))
+      .catch((err) => {
+        console.error('Błąd pobierania tłumaczeń:', err);
+        setError(err.message);
+        setTranslations(null);
+      })
+      .finally(() => setIsLoading(false));
+  }, [language]);
 
   const handleLanguageChange = (lang) => {
-    if (lang !== language && !isLoading) fetchTranslations(lang);
+    if (lang !== language && !isLoading) {
+      localStorage.setItem('lang', lang);
+      setLanguage(lang);
+    }
   };
 
   return (
-    <LanguageContext.Provider value={{ language, handleLanguageChange, isLoading, pendingLanguageRef }}>
-      <TranslationContext.Provider value={{ translations }}>
+    <LanguageContext.Provider value={{ language, handleLanguageChange, isLoading }}>
+      <TranslationContext.Provider value={{ translations, error, isLoading, language }}>
         {children}
       </TranslationContext.Provider>
     </LanguageContext.Provider>
   );
 };
 
- const AuthRedirect = () => {
+const AuthRedirect = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -91,15 +86,35 @@ const LanguageProvider = ({ children }) => {
           navigate('/manager', { replace: true });
           break;
         case 'USER':
-          navigate('/tenant', { replace: true });
+          navigate('/user', { replace: true });
           break;
         default:
           navigate('/', { replace: true });
       }
     }
-  }, [navigate]);  
+  }, [navigate]);
 
-  return null;  
+  return null;
+};
+
+const LanguageSelector = () => {
+  const { language, handleLanguageChange, isLoading } = useContext(LanguageContext);
+
+  return (
+    <div style={styles.languageSelector}>
+      {['pl', 'en', 'de'].map((lang) => (
+        <button
+          key={lang}
+          style={language === lang ? styles.languageButtonActive : styles.languageButton}
+          onClick={() => handleLanguageChange(lang)}
+          disabled={isLoading || language === lang}
+        >
+          {lang.toUpperCase()}
+        </button>
+      ))}
+      {isLoading && <span style={{ marginLeft: '10px' }}>⏳</span>}
+    </div>
+  );
 };
 
 const App = () => {
@@ -116,7 +131,7 @@ const App = () => {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/tenant" element={<Tenant />} />
+              <Route path="/user" element={<User />} />
               <Route path="/manager" element={<Manager />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/activate" element={<Activate />} />
@@ -128,30 +143,10 @@ const App = () => {
   );
 };
 
-const LanguageSelector = () => {
-  const { language, handleLanguageChange, isLoading, pendingLanguageRef } = useContext(LanguageContext);
-
-  return (
-    <div style={styles.languageSelector}>
-      {['pl', 'en', 'de'].map((lang) => (
-        <button
-          key={lang}
-          style={language === lang ? styles.languageButtonActive : styles.languageButton}
-          onClick={() => handleLanguageChange(lang)}
-          disabled={isLoading || pendingLanguageRef.current === lang}
-        >
-          {lang.toUpperCase()}
-        </button>
-      ))}
-      {isLoading && <p>Ładowanie tłumaczeń...</p>}
-    </div>
-  );
-};
-
 const styles = {
   container: {
     fontFamily: 'Arial, sans-serif',
-    height: '100vh',  
+    height: '100vh',
     display: 'flex',
     flexDirection: 'column',
     backgroundColor: '#f5f5f5',
@@ -164,12 +159,12 @@ const styles = {
     justifyContent: 'flex-end',
   },
   content: {
-    flex: 1,  
+    flex: 1,
     padding: '20px',
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'flex-start',  
-    overflowY: 'auto', 
+    alignItems: 'flex-start',
+    overflowY: 'auto',
   },
   languageSelector: {
     display: 'flex',
@@ -197,6 +192,5 @@ const styles = {
     transition: 'background-color 0.3s',
   },
 };
-
 
 export default App;

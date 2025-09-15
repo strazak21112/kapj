@@ -21,6 +21,32 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
     flatHeatingRate: 0.01,
   });
 
+  const labels = {
+    addBuilding: translations?.addBuilding || "Dodaj budynek",
+    cancel: translations?.cancel || "Anuluj",
+    formError:
+      translations?.buildingformError ||
+      "Uzupełnij wszystkie pola poprawnie. Wszystkie stawki muszą być większe od 0, a adres nie może być pusty.",
+    address: translations?.address || "Adres",
+    street: translations?.street || "Ulica",
+    number: translations?.buildingnumber || "Numer",
+    postalCode: translations?.postalCode || "Kod pocztowy",
+    city: translations?.city || "Miasto",
+    buildingInfo: translations?.buildingInfo || "Informacje o budynku",
+    numberOfFloors: translations?.numberOfFloors || "Liczba pięter",
+    rates: translations?.rates || "Stawki i opłaty",
+    electricityRate: translations?.electricityRate || "Stawka za prąd (zł/kWh)",
+    coldWaterRate: translations?.coldWaterRate || "Stawka za zimną wodę (zł/m³)",
+    hotWaterRate: translations?.hotWaterRate || "Stawka za ciepłą wodę (zł/m³)",
+    heatingRate: translations?.heatingRate || "Stawka za ogrzewanie (zł/GJ)",
+    rentRatePerM2: translations?.rentRatePerM2 || "Czynsz (zł/m²)",
+    otherChargesPerM2: translations?.otherChargesPerM2 || "Inne opłaty (zł/m²)",
+    flatElectricityRate: translations?.flatElectricityRate || "Ryczałt za prąd (zł)",
+    flatColdWaterRate: translations?.flatColdWaterRate || "Ryczałt za zimną wodę (zł)",
+    flatHotWaterRate: translations?.flatHotWaterRate || "Ryczałt za ciepłą wodę (zł)",
+    flatHeatingRate: translations?.flatHeatingRate || "Ryczałt za ogrzewanie (zł)",
+  };
+
   const handleAddressChange = (field, value) => {
     setForm((prev) => ({
       ...prev,
@@ -65,11 +91,12 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
     );
 
     if (isAddressInvalid || isFloorInvalid || hasInvalidRates) {
-      alert(translations?.formError || "Uzupełnij wszystkie pola poprawnie. Wszystkie stawki muszą być większe od 0, a adres nie może być pusty.");
+      alert(labels.formError);
       return;
     }
 
     onSubmit(form);
+    resetForm();
   };
 
   const resetForm = () => {
@@ -95,17 +122,20 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl mx-auto mt-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">{translations?.addBuilding || "Dodaj budynek"}</h2>
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-6 max-w-4xl mx-auto mt-10 bg-white shadow-lg rounded-2xl p-6 border border-gray-200"
+    >
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">{labels.addBuilding}</h2>
 
       <div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">{translations?.address || "Adres"}</h3>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">{labels.address}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[ 
-            { label: translations?.street || "Ulica", field: "street" },
-            { label: translations?.number || "Numer", field: "number" },
-            { label: translations?.postalCode || "Kod pocztowy", field: "postalCode" },
-            { label: translations?.city || "Miasto", field: "city" },
+          {[
+            { label: labels.street, field: "street" },
+            { label: labels.number, field: "number" },
+            { label: labels.postalCode, field: "postalCode" },
+            { label: labels.city, field: "city" },
           ].map(({ label, field }) => (
             <div key={field}>
               <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
@@ -113,7 +143,6 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
                 type="text"
                 value={form.address[field]}
                 onChange={(e) => handleAddressChange(field, e.target.value)}
-                required
                 className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
               />
             </div>
@@ -122,13 +151,12 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">{translations?.buildingInfo || "Informacje o budynku"}</h3>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">{labels.buildingInfo}</h3>
         <div className="w-1/2">
-          <label className="block text-sm font-medium text-gray-600 mb-1">{translations?.numberOfFloors || "Liczba pięter"}</label>
+          <label className="block text-sm font-medium text-gray-600 mb-1">{labels.numberOfFloors}</label>
           <input
             type="number"
             min="1"
-            required
             value={form.numberOfFloors}
             onChange={(e) => handleChange("numberOfFloors", parseInt(e.target.value))}
             className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
@@ -137,19 +165,19 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
       </div>
 
       <div>
-        <h3 className="text-lg font-semibold text-gray-700 mb-2">{translations?.rates || "Stawki i opłaty"}</h3>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">{labels.rates}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[ 
-            { label: translations?.electricityRate || "Stawka za prąd (zł/kWh)", field: "electricityRate" },
-            { label: translations?.coldWaterRate || "Stawka za zimną wodę (zł/m³)", field: "coldWaterRate" },
-            { label: translations?.hotWaterRate || "Stawka za ciepłą wodę (zł/m³)", field: "hotWaterRate" },
-            { label: translations?.heatingRate || "Stawka za ogrzewanie (zł/GJ)", field: "heatingRate" },
-            { label: translations?.rentRatePerM2 || "Czynsz (zł/m²)", field: "rentRatePerM2" },
-            { label: translations?.otherChargesPerM2 || "Inne opłaty (zł/m²)", field: "otherChargesPerM2" },
-            { label: translations?.flatElectricityRate || "Ryczałt za prąd (zł)", field: "flatElectricityRate" },
-            { label: translations?.flatColdWaterRate || "Ryczałt za zimną wodę (zł)", field: "flatColdWaterRate" },
-            { label: translations?.flatHotWaterRate || "Ryczałt za ciepłą wodę (zł)", field: "flatHotWaterRate" },
-            { label: translations?.flatHeatingRate || "Ryczałt za ogrzewanie (zł)", field: "flatHeatingRate" },
+          {[
+            { label: labels.electricityRate, field: "electricityRate" },
+            { label: labels.coldWaterRate, field: "coldWaterRate" },
+            { label: labels.hotWaterRate, field: "hotWaterRate" },
+            { label: labels.heatingRate, field: "heatingRate" },
+            { label: labels.rentRatePerM2, field: "rentRatePerM2" },
+            { label: labels.otherChargesPerM2, field: "otherChargesPerM2" },
+            { label: labels.flatElectricityRate, field: "flatElectricityRate" },
+            { label: labels.flatColdWaterRate, field: "flatColdWaterRate" },
+            { label: labels.flatHotWaterRate, field: "flatHotWaterRate" },
+            { label: labels.flatHeatingRate, field: "flatHeatingRate" },
           ].map(({ label, field }) => (
             <div key={field}>
               <label className="block text-sm font-medium text-gray-600 mb-1">{label}</label>
@@ -157,7 +185,6 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
                 type="number"
                 step="0.01"
                 min="0.01"
-                required
                 value={form[field]}
                 onChange={(e) => handleChange(field, parseFloat(e.target.value))}
                 className="border border-gray-300 p-2 rounded-lg w-full focus:ring focus:ring-blue-200 focus:outline-none"
@@ -172,14 +199,14 @@ const AddBuildingForm = ({ onSubmit, onCancel, translations }) => {
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg"
         >
-          {translations?.addBuilding || "Dodaj budynek"}
+          {labels.addBuilding}
         </button>
         <button
           type="button"
           onClick={onCancel}
           className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg"
         >
-          {translations?.cancel || "Anuluj"}
+          {labels.cancel}
         </button>
       </div>
     </form>

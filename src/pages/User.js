@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Tenant = () => {
+const User = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -78,4 +78,4 @@ const styles = {
   },
 };
 
-export default Tenant;
+export default User;

@@ -1,67 +1,72 @@
 import React from "react";
 
-const BuildingsList = ({ buildings, onShow, onEdit, onDelete, onAdd, translations }) => {
-  const handleDeleteClick = (id) => {
-    onDelete(id);
+const ApartmentsList = ({ apartments, onShow, onEdit, onDelete, onAdd, translations }) => {
+  const labels = {
+    title: translations?.apartments_list_title || "Lista mieszkań",
+    add: translations?.apartments_add || "Dodaj mieszkanie",
+    noData: translations?.apartments_no_data || "Brak mieszkań do wyświetlenia.",
+    address: translations?.apartments_address || "Adres",
+    number: translations?.apartments_number || "Numer mieszkania",
+    actions: translations?.apartments_actions || "Akcje",
+    noAddress: translations?.apartments_no_address || "Brak adresu",
+    show: translations?.apartments_show || "Pokaż",
+    edit: translations?.apartments_edit || "Edytuj",
+    delete: translations?.apartments_delete || "Usuń",
   };
 
   return (
     <div className="max-w-6xl mx-auto mt-10 bg-white shadow-xl rounded-2xl p-6 border border-gray-200">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-semibold text-gray-800">
-          📋 {translations?.buildings_list_title || "Lista budynków"}
-        </h2>
+        <h2 className="text-3xl font-semibold text-gray-800">🏠 {labels.title}</h2>
         <button
           onClick={onAdd}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-5 rounded-xl shadow transition duration-200"
         >
-          ➕ {translations?.add_building || "Dodaj budynek"}
+          ➕ {labels.add}
         </button>
       </div>
 
-      {buildings.length === 0 ? (
-        <p className="text-gray-500 text-center">
-          {translations?.no_buildings || "Brak budynków do wyświetlenia."}
-        </p>
+      {apartments.length === 0 ? (
+        <p className="text-gray-500 text-center">{labels.noData}</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full table-auto border-collapse text-sm md:text-base">
             <thead>
               <tr className="bg-gray-100 text-gray-700 text-left">
                 <th className="px-4 py-3">ID</th>
-                <th className="px-4 py-3">{translations?.address || "Adres"}</th>
-                <th className="px-4 py-3">{translations?.floor_count || "Liczba pięter"}</th>
-                <th className="px-4 py-3 text-center">{translations?.actions || "Akcje"}</th>
+                <th className="px-4 py-3">{labels.address}</th>
+                <th className="px-4 py-3">{labels.number}</th>
+                <th className="px-4 py-3 text-center">{labels.actions}</th>
               </tr>
             </thead>
             <tbody>
-              {buildings.map((building) => (
-                <tr key={building.id} className="border-b hover:bg-gray-50 transition">
-                  <td className="px-4 py-3">{building.id}</td>
+              {apartments.map((apartment) => (
+                <tr key={apartment.id} className="border-b hover:bg-gray-50 transition">
+                  <td className="px-4 py-3">{apartment.id}</td>
                   <td className="px-4 py-3">
-                    {building.address
-                      ? `${building.address.street?.trim()} /${building.address.number?.trim()}, ${building.address.postalCode?.trim()} ${building.address.city?.trim()}`
-                      : translations?.no_address || "Brak adresu"}
+                    {apartment.address
+                      ? `${apartment.address.street?.trim()} ${apartment.address.number?.trim()}, ${apartment.address.postalCode?.trim()} ${apartment.address.city?.trim()}`
+                      : labels.noAddress}
                   </td>
-                  <td className="px-4 py-3">{building.numberOfFloors}</td>
+                  <td className="px-4 py-3">{apartment.number}</td>
                   <td className="px-4 py-3 space-x-2 text-center">
                     <button
-                      onClick={() => onShow(building)}
+                      onClick={() => onShow(apartment)}
                       className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg shadow"
                     >
-                      👁️ {translations?.show || "Pokaż"}
+                      👁️ {labels.show}
                     </button>
                     <button
-                      onClick={() => onEdit(building)}
+                      onClick={() => onEdit(apartment)}
                       className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg shadow"
                     >
-                      ✏️ {translations?.edit || "Edytuj"}
+                      ✏️ {labels.edit}
                     </button>
                     <button
-                      onClick={() => handleDeleteClick(building.id)}
+                      onClick={() => onDelete(apartment.id)}
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg shadow"
                     >
-                      🗑️ {translations?.delete || "Usuń"}
+                      🗑️ {labels.delete}
                     </button>
                   </td>
                 </tr>
@@ -74,4 +79,4 @@ const BuildingsList = ({ buildings, onShow, onEdit, onDelete, onAdd, translation
   );
 };
 
-export default BuildingsList;
+export default ApartmentsList;

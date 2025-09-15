@@ -1,11 +1,12 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
-import { TranslationContext } from '../App'; 
+import { TranslationContext } from '../../App';
 
 const Register = () => {
   const { translations, isLoading } = useContext(TranslationContext);
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -15,18 +16,19 @@ const Register = () => {
     password: '',
     recaptchaToken: '',
   });
+
   const [recaptchaValue, setRecaptchaValue] = useState(null);
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState(null);
 
   const plLabels = {
     register_title: "Rejestracja",
-    firstName_placeholder: "Imię",
-    lastName_placeholder: "Nazwisko",
-    pesel_placeholder: "PESEL",
-    phoneNumber_placeholder: "Numer telefonu",
-    email_placeholder: "Adres email",
-    password_placeholder: "Hasło",
+    registerFirstName_placeholder: "Imię",
+    registerLastName_placeholder: "Nazwisko",
+    registerPesel_placeholder: "PESEL",
+    registerPhoneNumber_placeholder: "Numer telefonu",
+    registerEmail_placeholder: "Adres email",
+    registerPassword_placeholder: "Hasło",
     submit_button: "Zarejestruj się",
     recaptcha_label: "Proszę potwierdzić, że nie jesteś robotem.",
     error_pesel: "PESEL musi mieć 11 cyfr i poprawną sumę kontrolną.",
@@ -34,12 +36,11 @@ const Register = () => {
     error_password: "Hasło musi mieć co najmniej 12 znaków, w tym dużą literę, małą literę, cyfrę i znak specjalny.",
     error_required: "To pole jest wymagane.",
     error_invalidData: "Niepoprawne dane. Proszę sprawdzić formularz i spróbować ponownie.",
-    success_registration: "Rejestracja zakończona sukcesem! Zostaniesz przekierowany na stronę główną.",
     error_generic: "Wystąpił błąd. Spróbuj ponownie później."
   };
 
- 
-  const labels = translations || plLabels;
+  const labels = translations?.labels || plLabels;
+  const language = translations?.language || 'pl';
 
   const validatePesel = (pesel) => {
     if (!/^[0-9]{11}$/.test(pesel)) return labels["error_pesel"];
@@ -51,9 +52,10 @@ const Register = () => {
 
   const validatePhoneNumber = (phoneNumber) => /^[0-9]{9}$/.test(phoneNumber) ? '' : labels["error_phone"];
 
-  const validatePassword = (password) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/.test(password) ? '' : labels["error_password"];
+  const validatePassword = (password) =>
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/.test(password)
+      ? '' : labels["error_password"];
 
-  
   const validateForm = () => {
     let newErrors = {};
     Object.keys(formData).forEach((key) => {
@@ -72,71 +74,92 @@ const Register = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
+  if (!validateForm()) {
+    alert(labels["error_invalidData"]);
+    return;
+  }
 
-    if (!validateForm()) {
-      alert(labels["error_invalidData"]);
-      return;
-    }
+  if (!recaptchaValue) {
+    setErrors({ ...errors, recaptcha: labels["recaptcha_label"] });
+    return;
+  }
 
+  try {
+    const response = await fetch(`http://localhost:8080/Spring6_war_exploded/auth/register?lang=${language}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        pesel: formData.pesel,
+        phoneNumber: formData.phoneNumber,
+        email: formData.email,
+        password: formData.password,
+        recaptchaToken: recaptchaValue,
+      }),
+    });
 
-    if (!recaptchaValue) {
-      setErrors({ ...errors, recaptcha: labels["recaptcha_label"] });
-      return;
-    }
-
-    try {
-      const response = await fetch('http://localhost:8080/untitled_war_exploded/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, recaptchaToken: recaptchaValue }),
+    const data = await response.json();
+    setSuccessMessage(data.message);  
+    if (response.ok) {
+      setFormData({
+        firstName: '',
+        lastName: '',
+        pesel: '',
+        phoneNumber: '',
+        email: '',
+        password: '',
+        recaptchaToken: '',
       });
-
-      if (response.ok) {
-    
-        setSuccessMessage(labels["success_registration"]);
-        setTimeout(() => navigate('/'), 3000);
-      } else {
-        alert(labels["error_invalidData"]); 
-      }
-    } catch (error) {
-    
-      alert(labels["error_generic"]);
+      setRecaptchaValue(null);
+      setTimeout(() => navigate('/'), 3000);
     }
-  };
 
-  useEffect(() => {
+  } catch (error) {
+    setSuccessMessage(labels["error_generic"]); 
+  }
+};
 
-  }, [translations]);
+
+  useEffect(() => {}, [translations]);
 
   if (isLoading) return <div>Ładowanie...</div>;
+
+  const inputFields = [
+    { name: 'firstName', labelKey: 'registerFirstName_placeholder' },
+    { name: 'lastName', labelKey: 'registerLastName_placeholder' },
+    { name: 'pesel', labelKey: 'registerPesel_placeholder' },
+    { name: 'phoneNumber', labelKey: 'registerPhoneNumber_placeholder' },
+    { name: 'email', labelKey: 'registerEmail_placeholder' },
+    { name: 'password', labelKey: 'registerPassword_placeholder' },
+  ];
 
   return (
     <div style={styles.container}>
       <h2>{labels.register_title}</h2>
       <form style={styles.form} onSubmit={handleSubmit}>
-        {Object.keys(formData).map((key) => (
-          key !== 'recaptchaToken' && (
-            <div key={key} style={styles.inputContainer}>
-              <input
-                type={key === 'password' ? 'password' : 'text'}
-                name={key}
-                placeholder={labels[`${key}_placeholder`]}
-                value={formData[key]}
-                onChange={handleChange}
-                required
-                style={styles.input}
-              />
-              {errors[key] && <p style={styles.errorText}>{errors[key]}</p>}
-            </div>
-          )
+        {inputFields.map(({ name, labelKey }) => (
+          <div key={name} style={styles.inputContainer}>
+            <input
+              type={name === 'password' ? 'password' : 'text'}
+              name={name}
+              placeholder={labels[labelKey]}
+              value={formData[name]}
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+            {errors[name] && <p style={styles.errorText}>{errors[name]}</p>}
+          </div>
         ))}
         <div style={styles.inputContainer}>
-          <ReCAPTCHA 
-            sitekey="6LcmuoMqAAAAAEDAyNyH6E70-_6gTr9YU0IyZSKi" 
-            onChange={setRecaptchaValue} 
+          <ReCAPTCHA
+            sitekey="6LcmuoMqAAAAAEDAyNyH6E70-_6gTr9YU0IyZSKi"
+            onChange={setRecaptchaValue}
             style={styles.recaptcha}
+            hl={language}
           />
           {errors.recaptcha && <p style={styles.errorText}>{errors.recaptcha}</p>}
         </div>
@@ -186,9 +209,6 @@ const styles = {
     borderRadius: '5px',
     cursor: 'pointer',
     transition: 'background-color 0.3s',
-  },
-  buttonHover: {
-    backgroundColor: '#2563eb',
   },
   errorText: {
     color: 'red',
